@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SUNOKA | Skin Ritual</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script>
+    if (!window.React) {
+      document.write('<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"><\/script>');
+    }
+  </script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/framer-motion@11.11.17/dist/framer-motion.js"></script>
+  <script>window.Motion = window.FramerMotion;</script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ["Instrument Serif", "serif"],
+            body: ["Barlow", "sans-serif"],
+          },
+          borderRadius: { DEFAULT: "9999px" },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html, body { margin: 0; min-height: 100%; background: #000; }
+    body { font-family: "Barlow", sans-serif; overflow-x: hidden; }
+    #root { min-height: 100vh; background: #000; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .liquid-glass {
+      background: rgba(255,255,255,0.01);
+      background-blend-mode: luminosity;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: none;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .liquid-glass::before {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      padding: 1.4px;
+      background: linear-gradient(180deg,
+        rgba(255,255,255,0.45) 0%,
+        rgba(255,255,255,0.15) 20%,
+        rgba(255,255,255,0) 40%,
+        rgba(255,255,255,0) 60%,
+        rgba(255,255,255,0.15) 80%,
+        rgba(255,255,255,0.45) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .liquid-glass-strong {
+      background: rgba(255,255,255,0.01);
+      background-blend-mode: luminosity;
+      backdrop-filter: blur(50px);
+      -webkit-backdrop-filter: blur(50px);
+      border: none;
+      box-shadow: 4px 4px 4px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .liquid-glass-strong::before {
+      content: "";
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      padding: 1.4px;
+      background: linear-gradient(180deg,
+        rgba(255,255,255,0.5) 0%,
+        rgba(255,255,255,0.2) 20%,
+        rgba(255,255,255,0) 40%,
+        rgba(255,255,255,0) 60%,
+        rgba(255,255,255,0.2) 80%,
+        rgba(255,255,255,0.5) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .video-fallback {
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255,255,255,0.28), transparent 28%),
+        radial-gradient(circle at 80% 35%, rgba(222,191,159,0.35), transparent 25%),
+        linear-gradient(135deg, #070605 0%, #3f342f 38%, #a9937b 68%, #0b0a09 100%);
+      background-size: 130% 130%;
+    }
+    @media (max-width: 640px) {
+      .hero-title { letter-spacing: -2px !important; }
+    }
+    .premium-visual {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.02);
+    }
+    .visual-vignette {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 0%, rgba(0,0,0,0.18) 48%, rgba(0,0,0,0.72) 100%),
+        linear-gradient(90deg, rgba(0,0,0,0.72), rgba(0,0,0,0.18) 42%, rgba(0,0,0,0.08));
+    }
+  </style>
+</head>
+<body class="bg-black">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useEffect, useMemo, useRef, useState } = React;
+    if (!window.Motion || !window.Motion.motion) {
+      const buildMotionComponent = (Tag) => {
+        return ({ children, initial, animate, whileInView, viewport, transition = {}, style = {}, ...rest }) => {
+          const ref = useRef(null);
+          const [active, setActive] = useState(!whileInView);
+          const target = whileInView || animate || {};
+          const finalStyle = Object.fromEntries(
+            Object.entries(target).map(([key, value]) => [key, Array.isArray(value) ? value[value.length - 1] : value])
+          );
+          const duration = transition.duration || 0.7;
+          const delay = transition.delay || 0;
+          const mergedStyle = {
+            ...style,
+            ...(active ? finalStyle : (initial || {})),
+            transition: `all ${duration}s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
+          };
+
+          useEffect(() => {
+            if (!whileInView) {
+              const id = requestAnimationFrame(() => setActive(true));
+              return () => cancelAnimationFrame(id);
+            }
+            const el = ref.current;
+            if (!el) return;
+            const obs = new IntersectionObserver((entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) setActive(true);
+              });
+            }, { threshold: viewport?.amount || 0.1 });
+            obs.observe(el);
+            return () => obs.disconnect();
+          }, []);
+
+          return <Tag ref={ref} style={mergedStyle} {...rest}>{children}</Tag>;
+        };
+      };
+      window.Motion = {
+        motion: new Proxy({}, {
+          get: (_, tag) => buildMotionComponent(tag),
+        }),
+      };
+    }
+    const { motion } = window.Motion;
+
+    const VIDEO = {
+      hero: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_080021_d598092b-c4c2-4e53-8e46-94cf9064cd50.mp4",
+      capabilities: "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_094631_d30ab262-45ee-4b7d-99f3-5d5848c8ef13.mp4",
+    };
+
+    const COPY = {
+      ko: {
+        code: "KR",
+        switchTo: "中文",
+        nav: ["Home", "Ritual", "Products", "Ingredients", "Shop"],
+        navCta: "상담하기",
+        badgeNew: "New",
+        badgeText: "SUNOKA 첫 스킨케어 리추얼 공개",
+        headline: "피부에 닿는 조용한 빛 Sunoka",
+        sub: "SUNOKA는 매일의 세안 뒤에 남는 수분감, 결, 향을 세심하게 설계하는 코스메틱 브랜드입니다. 스킨, 로션, 에센스, 크림까지 피부가 편안하게 빛나는 루틴을 제안합니다.",
+        ctaPrimary: "제품 라인 보기",
+        ctaSecondary: "브랜드 무드 보기",
+        stat1Num: "4-Step",
+        stat1Label: "스킨부터 크림까지 이어지는 기본 루틴",
+        stat2Num: "24H",
+        stat2Label: "하루 종일 부담 없는 촉촉한 마무리",
+        partnersChip: "스튜디오, 스파, 뷰티 셀렉트숍을 위한 감각적인 데일리 케어",
+        partners: ["Toner", "Lotion", "Essence", "Cream", "Cleanser"],
+        kicker: "// Sunoka Collection",
+        heading1: "맑은 루틴,",
+        heading2: "단단한 피부결",
+        cards: [
+          {
+            title: "Pure Skin Toner",
+            tags: ["수분 정돈", "가벼운 흡수", "데일리", "민감 루틴"],
+            body: "세안 후 첫 단계에서 피부결을 부드럽게 정돈합니다. 산뜻한 워터 텍스처가 다음 스킨케어의 흡수를 편안하게 열어줍니다.",
+          },
+          {
+            title: "Soft Veil Lotion",
+            tags: ["보습막", "실키 텍스처", "균형 케어", "번들거림 적음"],
+            body: "가벼운 로션이 피부 위에 얇은 베일처럼 스며듭니다. 건조함은 덜고, 메이크업 전에도 편안한 마무리를 남깁니다.",
+          },
+          {
+            title: "Deep Rest Cream",
+            tags: ["영양 집중", "장벽 케어", "나이트 리추얼", "윤기"],
+            body: "하루의 끝에서 피부를 감싸는 고보습 크림입니다. 차분한 사용감과 은은한 윤기로 다음 아침의 피부를 준비합니다.",
+          },
+        ],
+      },
+      zh: {
+        code: "CN",
+        switchTo: "한국어",
+        nav: ["首页", "护理仪式", "产品", "成分", "购买"],
+        navCta: "咨询",
+        badgeNew: "New",
+        badgeText: "SUNOKA 首个护肤仪式系列发布",
+        headline: "让肌肤遇见安静的光 Sunoka",
+        sub: "SUNOKA 是一个关注每日肤感的护肤品牌。从爽肤水、乳液、精华到面霜，我们以温和质地、舒适香气与稳定保湿，打造清透而有光泽的日常护理。",
+        ctaPrimary: "查看产品线",
+        ctaSecondary: "观看品牌氛围",
+        stat1Num: "4-Step",
+        stat1Label: "从爽肤水到面霜的完整基础护理",
+        stat2Num: "24H",
+        stat2Label: "轻盈保湿，全天舒适不厚重",
+        partnersChip: "为美肤工作室、SPA 与精品集合店打造的日常护肤美学",
+        partners: ["爽肤水", "乳液", "精华", "面霜", "洁面"],
+        kicker: "// Sunoka Collection",
+        heading1: "清透护理，",
+        heading2: "细腻肤质",
+        cards: [
+          {
+            title: "Pure Skin Toner",
+            tags: ["补水调理", "轻盈吸收", "每日使用", "敏感友好"],
+            body: "洁面后的第一步，帮助柔和整理肌肤纹理。清爽水感质地，为后续护肤打开舒适的吸收状态。",
+          },
+          {
+            title: "Soft Veil Lotion",
+            tags: ["锁水薄膜", "丝滑质地", "平衡护理", "不易油腻"],
+            body: "轻盈乳液像薄纱一样贴合肌肤，缓解干燥，同时保留清爽触感，妆前使用也舒适自然。",
+          },
+          {
+            title: "Deep Rest Cream",
+            tags: ["密集滋养", "屏障护理", "夜间仪式", "柔润光泽"],
+            body: "在一天结束时包裹肌肤的高保湿面霜。柔和肤感与细腻光泽，让肌肤为第二天做好准备。",
+          },
+        ],
+      },
+    };
+
+    const ArrowUpRight = (props) => (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M7 17L17 7" />
+        <path d="M7 7h10v10" />
+      </svg>
+    );
+    const Play = (props) => (
+      <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <polygon points="6 4 20 12 6 20 6 4" />
+      </svg>
+    );
+    const Clock = (props) => (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 3" />
+      </svg>
+    );
+    const Glow = (props) => (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M12 2v4" />
+        <path d="M12 18v4" />
+        <path d="m4.93 4.93 2.83 2.83" />
+        <path d="m16.24 16.24 2.83 2.83" />
+        <path d="M2 12h4" />
+        <path d="M18 12h4" />
+        <path d="m4.93 19.07 2.83-2.83" />
+        <path d="m16.24 7.76 2.83-2.83" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    );
+    const Drop = (props) => (
+      <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12 2C8 8 5 11.5 5 15a7 7 0 0 0 14 0c0-3.5-3-7-7-13Z" />
+      </svg>
+    );
+    const Bottle = (props) => (
+      <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M9 2h6v3.2c0 .4.15.78.42 1.07L17 8.2c.64.68 1 1.58 1 2.52V20a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-9.28c0-.94.36-1.84 1-2.52l1.58-1.93A1.5 1.5 0 0 0 9 5.2V2Z" />
+      </svg>
+    );
+    const Jar = (props) => (
+      <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M6 9h12v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9Z" />
+        <rect x="5" y="5" width="14" height="4" rx="1" />
+      </svg>
+    );
+
+    function FadingVideo({ src, className, style }) {
+      const ref = useRef(null);
+      const rafRef = useRef(null);
+      const fadingOutRef = useRef(false);
+      const timeoutRef = useRef(null);
+
+      useEffect(() => {
+        const video = ref.current;
+        if (!video) return;
+        const FADE_MS = 500;
+        const FADE_OUT_LEAD = 0.55;
+
+        const fadeTo = (target, duration) => {
+          cancelAnimationFrame(rafRef.current);
+          const start = performance.now();
+          const initial = Number.parseFloat(video.style.opacity || "0") || 0;
+          const step = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            video.style.opacity = String(initial + (target - initial) * eased);
+            if (progress < 1) rafRef.current = requestAnimationFrame(step);
+          };
+          rafRef.current = requestAnimationFrame(step);
+        };
+
+        const onLoadedData = () => {
+          video.style.opacity = "0";
+          video.play().catch(() => {});
+          fadeTo(1, FADE_MS);
+        };
+        const onTimeUpdate = () => {
+          if (!video.duration) return;
+          const remaining = video.duration - video.currentTime;
+          if (!fadingOutRef.current && remaining <= FADE_OUT_LEAD && remaining > 0) {
+            fadingOutRef.current = true;
+            fadeTo(0, FADE_MS);
+          }
+        };
+        const onEnded = () => {
+          video.style.opacity = "0";
+          timeoutRef.current = setTimeout(() => {
+            video.currentTime = 0;
+            video.play().catch(() => {});
+            fadingOutRef.current = false;
+            fadeTo(1, FADE_MS);
+          }, 100);
+        };
+
+        video.addEventListener("loadeddata", onLoadedData);
+        video.addEventListener("timeupdate", onTimeUpdate);
+        video.addEventListener("ended", onEnded);
+        video.load();
+
+        return () => {
+          cancelAnimationFrame(rafRef.current);
+          clearTimeout(timeoutRef.current);
+          video.removeEventListener("loadeddata", onLoadedData);
+          video.removeEventListener("timeupdate", onTimeUpdate);
+          video.removeEventListener("ended", onEnded);
+        };
+      }, [src]);
+
+      return (
+        <video
+          ref={ref}
+          className={`${className} video-fallback`}
+          style={{ ...style, opacity: 0 }}
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          src={src}
+        />
+      );
+    }
+
+    function BlurText({ text, className }) {
+      const ref = useRef(null);
+      const [visible, setVisible] = useState(false);
+
+      useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const obs = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) setVisible(true);
+          });
+        }, { threshold: 0.1 });
+        obs.observe(el);
+        return () => obs.disconnect();
+      }, []);
+
+      return (
+        <p ref={ref} className={className} style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", rowGap: "0.1em" }}>
+          {text.split(" ").map((word, index) => (
+            <motion.span
+              key={`${word}-${index}`}
+              initial={{ filter: "blur(10px)", opacity: 0, y: 50 }}
+              animate={visible ? { filter: ["blur(10px)", "blur(5px)", "blur(0px)"], opacity: [0, 0.5, 1], y: [50, -5, 0] } : {}}
+              transition={{ duration: 0.7, times: [0, 0.5, 1], ease: "easeOut", delay: (index * 100) / 1000 }}
+              style={{ display: "inline-block", marginRight: "0.28em" }}
+            >
+              {word}
+            </motion.span>
+          ))}
+        </p>
+      );
+    }
+
+    function PremiumImageSection({ lang, type }) {
+      const isDrop = type === "drop";
+      const copy = lang === "zh"
+        ? (isDrop
+          ? {
+              kicker: "// Moisture Architecture",
+              title: "一滴水分，形成第一层光泽",
+              body: "SUNOKA 的水分护理从轻盈的透明感开始。爽肤水与精华帮助整理肌肤纹理，像薄薄的水膜一样留住舒适湿润感。",
+              badge: "适合 爽肤水 · 精华 · 乳液",
+              product: "Hydra Veil",
+              desc: "清透水润的第一层锁水精华。",
+              img: "assets/sunoka-serum-drop.png",
+              align: "left",
+            }
+          : {
+              kicker: "// Botanical Mineral Ritual",
+              title: "花瓣、矿物与夜间修护",
+              body: "柔和花瓣感与透明矿物光泽结合，为面霜与夜间护理营造更安静、更深层的使用体验。这是 SUNOKA 产品线的质感语言。",
+              badge: "适合 面霜 · 夜间护理 · 舒缓系列",
+              product: "Crystal Bloom",
+              desc: "以花瓣、矿物与露水感呈现的舒缓修护系列。",
+              img: "assets/sunoka-crystal-garden.png",
+              align: "right",
+            })
+        : (isDrop
+          ? {
+              kicker: "// Moisture Architecture",
+              title: "한 방울의 수분이 첫 번째 빛을 만듭니다",
+              body: "SUNOKA의 수분 루틴은 가볍고 투명한 막에서 시작됩니다. 스킨과 에센스가 피부결을 정돈하고, 얇은 수분 베일처럼 촉촉함을 오래 붙잡아 줍니다.",
+              badge: "추천 제품: 스킨 · 에센스 · 로션",
+              product: "Hydra Veil",
+              desc: "피부 위 첫 수분층을 맑게 만드는 워터락 에센스.",
+              img: "assets/sunoka-serum-drop.png",
+              align: "left",
+            }
+          : {
+              kicker: "// Botanical Mineral Ritual",
+              title: "꽃잎과 미네랄, 밤의 회복감",
+              body: "부드러운 꽃잎의 감성과 투명한 크리스탈 광택을 결합해 크림과 나이트 케어의 깊이를 보여줍니다. 단순 장식이 아니라 SUNOKA 제품 라인의 촉감과 향을 설명하는 비주얼 언어입니다.",
+              badge: "추천 제품: 크림 · 나이트 케어 · 진정 라인",
+              product: "Crystal Bloom",
+              desc: "꽃잎, 미네랄, 이슬감을 담은 진정 리페어 라인.",
+              img: "assets/sunoka-crystal-garden.png",
+              align: "right",
+            });
+
+      const contentSide = copy.align === "left" ? "lg:items-start lg:text-left" : "lg:items-end lg:text-right lg:ml-auto";
+      const imagePosition = isDrop ? "object-center" : "object-center";
+
+      return (
+        <section className="relative min-h-screen overflow-hidden bg-black">
+          <img src={copy.img} alt="" className={`premium-visual ${imagePosition}`} />
+          <div className="visual-vignette" />
+          <div className="relative z-10 flex min-h-screen items-end px-6 pb-16 pt-28 md:px-16 lg:px-20 lg:pb-20">
+            <motion.div
+              initial={{ filter: "blur(10px)", opacity: 0, y: 24 }}
+              whileInView={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className={`flex max-w-2xl flex-col text-white ${contentSide}`}
+            >
+              <div className="mb-5 text-sm font-body text-white/76">{copy.kicker}</div>
+              <h2 className="font-heading italic text-5xl leading-[0.88] tracking-[-2px] md:text-7xl lg:text-[5.8rem]">{copy.title}</h2>
+              <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-white/90 md:text-lg">{copy.body}</p>
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium text-white">{copy.badge}</div>
+                <div className="liquid-glass rounded-[1.25rem] px-5 py-4 text-white">
+                  <div className="font-heading italic text-3xl leading-none">{copy.product}</div>
+                  <div className="mt-2 max-w-[26rem] text-xs font-light leading-snug text-white/86">{copy.desc}</div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      );
+    }
+
+    function PremiumVisualSection({ lang, type }) {
+      const data = {
+        drop: {
+          ko: {
+            kicker: "// Moisture Architecture",
+            title: "한 방울의 수분이 첫 번째 빛을 만듭니다",
+            body: "SUNOKA의 수분 루틴은 가볍고 투명한 막에서 시작됩니다. 스킨과 에센스가 피부결을 정돈하고, 얇은 수분 베일처럼 촉촉함을 오래 붙잡아 줍니다.",
+            badge: "추천 제품: 스킨 · 에센스 · 로션",
+            product: "Hydra Veil",
+            desc: "피부 위 첫 수분층을 맑게 만드는 워터락 에센스.",
+          },
+          zh: {
+            kicker: "// Moisture Architecture",
+            title: "一滴水分，形成第一层光泽",
+            body: "SUNOKA 的水分护理从轻盈的透明感开始。爽肤水与精华帮助整理肌肤纹理，像薄薄的水膜一样留住舒适湿润感。",
+            badge: "适合 爽肤水 · 精华 · 乳液",
+            product: "Hydra Veil",
+            desc: "清透水润的第一层锁水精华。",
+          },
+          img: "assets/sunoka-serum-drop.png",
+          align: "left",
+        },
+        garden: {
+          ko: {
+            kicker: "// Botanical Mineral Ritual",
+            title: "꽃잎과 미네랄, 밤의 회복감",
+            body: "부드러운 꽃잎의 감성과 투명한 크리스탈 광택을 결합해 크림과 나이트 케어의 깊이를 보여줍니다. SUNOKA 제품 라인의 촉감과 향을 설명하는 비주얼 언어입니다.",
+            badge: "추천 제품: 크림 · 나이트 케어 · 진정 라인",
+            product: "Crystal Bloom",
+            desc: "꽃잎, 미네랄, 이슬감을 담은 진정 리페어 라인.",
+          },
+          zh: {
+            kicker: "// Botanical Mineral Ritual",
+            title: "花瓣、矿物与夜间修护",
+            body: "柔和花瓣感与透明矿物光泽结合，为面霜与夜间护理营造更安静、更深层的使用体验。这是 SUNOKA 产品线的质感语言。",
+            badge: "适合 面霜 · 夜间护理 · 舒缓系列",
+            product: "Crystal Bloom",
+            desc: "以花瓣、矿物与露水感呈现的舒缓修护系列。",
+          },
+          img: "assets/sunoka-crystal-garden.png",
+          align: "right",
+        },
+        cream: {
+          ko: {
+            kicker: "// Silk Barrier Cream",
+            title: "실크처럼 밀착되는 보습 장벽",
+            body: "크림은 무겁게 덮는 것이 아니라 피부 위에 조용히 밀착되어야 합니다. SUNOKA는 윤기, 보습, 편안한 마무리를 하나의 실키한 결로 정리합니다.",
+            badge: "추천 제품: 크림 · 로션 · 장벽 케어",
+            product: "Silk Barrier",
+            desc: "부드럽게 밀착되어 건조한 결을 감싸는 고보습 크림 라인.",
+          },
+          zh: {
+            kicker: "// Silk Barrier Cream",
+            title: "像丝绸一样贴合的保湿屏障",
+            body: "面霜不应厚重覆盖，而应安静贴合肌肤。SUNOKA 将光泽、保湿与舒适收尾整理成丝滑细腻的肤感。",
+            badge: "适合 面霜 · 乳液 · 屏障护理",
+            product: "Silk Barrier",
+            desc: "柔滑贴合，包裹干燥纹理的高保湿面霜系列。",
+          },
+          img: "assets/sunoka-silk-cream.png",
+          align: "left",
+        },
+        lab: {
+          ko: {
+            kicker: "// Precision Ampoule Lab",
+            title: "정교하게 설계된 앰플 리추얼",
+            body: "블랙과 화이트 패키지, 앰버 글라스, 섬세한 빛의 구조로 SUNOKA의 전문성을 표현합니다. 매일 쓰는 제품이지만, 포뮬러는 정확하고 정제되어야 합니다.",
+            badge: "추천 제품: 앰플 · 세럼 · 집중 케어",
+            product: "Ampoule Lab",
+            desc: "피부 컨디션에 맞춰 집중적으로 사용하는 고농축 케어 라인.",
+          },
+          zh: {
+            kicker: "// Precision Ampoule Lab",
+            title: "精密设计的安瓶护理仪式",
+            body: "黑白包装、琥珀玻璃与精确光影，呈现 SUNOKA 的专业感。它是每日护理，也是一套更稳定、更精致的配方系统。",
+            badge: "适合 安瓶 · 精华 · 集中护理",
+            product: "Ampoule Lab",
+            desc: "根据肌肤状态进行集中护理的高浓度系列。",
+          },
+          img: "assets/sunoka-ampoule-lab.png",
+          align: "right",
+        },
+      };
+
+      const item = data[type];
+      const copy = item[lang];
+      const contentSide = item.align === "left" ? "lg:items-start lg:text-left" : "lg:items-end lg:text-right lg:ml-auto";
+
+      return (
+        <section className="relative min-h-screen overflow-hidden bg-black">
+          <img src={item.img} alt="" className="premium-visual object-center" />
+          <div className="visual-vignette" />
+          <div className="relative z-10 flex min-h-screen items-end px-6 pb-16 pt-28 md:px-16 lg:px-20 lg:pb-20">
+            <motion.div
+              initial={{ filter: "blur(10px)", opacity: 0, y: 24 }}
+              whileInView={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className={`flex max-w-2xl flex-col text-white ${contentSide}`}
+            >
+              <div className="mb-5 text-sm font-body text-white/76">{copy.kicker}</div>
+              <h2 className="font-heading italic text-5xl leading-[0.88] tracking-[-2px] md:text-7xl lg:text-[5.8rem]">{copy.title}</h2>
+              <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-white/90 md:text-lg">{copy.body}</p>
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium text-white">{copy.badge}</div>
+                <div className="liquid-glass rounded-[1.25rem] px-5 py-4 text-white">
+                  <div className="font-heading italic text-3xl leading-none">{copy.product}</div>
+                  <div className="mt-2 max-w-[26rem] text-xs font-light leading-snug text-white/86">{copy.desc}</div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      );
+    }
+
+    function CampaignProofSection({ lang }) {
+      const copy = lang === "zh"
+        ? {
+            kicker: "// Real Campaign",
+            title: "从广告视觉到真实日常",
+            body: "深色电影感建立品牌高级感，明亮人物视觉则展示 SUNOKA 真正进入日常护肤的样子。透明光泽、清爽爽肤水、套盒护理共同形成完整的品牌体验。",
+            cards: [
+              ["Clear Glow Care", "清透光泽护理，用套盒与安瓶呈现专业感。"],
+              ["Daily Toner Mood", "第一步爽肤水，让日常护理更轻盈明亮。"],
+            ],
+          }
+        : {
+            kicker: "// Real Campaign",
+            title: "광고 무드에서 실제 데일리 케어까지",
+            body: "어두운 시네마틱 컷이 브랜드의 고급감을 만든다면, 밝은 모델 컷은 SUNOKA가 실제 피부와 일상에 닿는 순간을 보여줍니다. 투명한 윤광, 산뜻한 토너, 세트 케어가 하나의 경험으로 이어집니다.",
+            cards: [
+              ["Clear Glow Care", "세트와 앰플로 보여주는 맑고 투명한 윤광 케어."],
+              ["Daily Toner Mood", "첫 단계 토너로 완성하는 산뜻하고 밝은 데일리 루틴."],
+            ],
+          };
+
+      const images = [
+        "assets/sunoka-campaign-glow.png",
+        "assets/sunoka-campaign-toner.png",
+      ];
+
+      return (
+        <section className="relative overflow-hidden bg-[#f3f7f8] px-6 py-24 text-black md:px-16 lg:px-20">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+              <motion.div
+                initial={{ filter: "blur(10px)", opacity: 0, y: 24 }}
+                whileInView={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              >
+                <div className="mb-5 text-sm font-body text-black/55">{copy.kicker}</div>
+                <h2 className="font-heading italic text-5xl leading-[0.9] tracking-[-2px] md:text-7xl">{copy.title}</h2>
+                <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-black/72 md:text-lg">{copy.body}</p>
+              </motion.div>
+              <div className="grid gap-5 md:grid-cols-2">
+                {images.map((src, index) => (
+                  <motion.article
+                    key={src}
+                    initial={{ filter: "blur(10px)", opacity: 0, y: 24 }}
+                    whileInView={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.75, ease: "easeOut", delay: index * 0.1 }}
+                    className="overflow-hidden rounded-[1.25rem] bg-white shadow-[0_24px_80px_rgba(20,30,45,0.16)]"
+                  >
+                    <div className="aspect-[4/5] overflow-hidden">
+                      <img src={src} alt="" className="h-full w-full object-cover" />
+                    </div>
+                    <div className="p-5">
+                      <div className="font-heading italic text-3xl leading-none">{copy.cards[index][0]}</div>
+                      <p className="mt-2 text-sm font-light leading-snug text-black/68">{copy.cards[index][1]}</p>
+                    </div>
+                  </motion.article>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function Navbar({ copy, lang, setLang }) {
+      return (
+        <nav className="fixed top-4 left-0 right-0 px-5 md:px-8 lg:px-16 z-50 flex items-center justify-between">
+          <a href="#top" className="liquid-glass w-12 h-12 rounded-full flex items-center justify-center">
+            <span className="font-heading italic text-white text-2xl lowercase">s</span>
+          </a>
+
+          <div className="hidden lg:flex liquid-glass rounded-full px-1.5 py-1.5 items-center">
+            {copy.nav.map((label) => (
+              <a key={label} href="#collection" className="px-3 py-2 text-sm font-medium text-white/90 font-body">
+                {label}
+              </a>
+            ))}
+            <a href="#collection" className="rounded-full bg-white text-black whitespace-nowrap px-4 py-2 text-sm font-medium flex items-center gap-1 ml-1">
+              {copy.navCta} <ArrowUpRight className="h-4 w-4" />
+            </a>
+          </div>
+
+          <button
+            onClick={() => setLang(lang === "ko" ? "zh" : "ko")}
+            className="liquid-glass h-12 min-w-12 rounded-full flex items-center justify-center text-white text-xs font-semibold font-body px-3"
+            aria-label="Change language"
+          >
+            {copy.switchTo}
+          </button>
+        </nav>
+      );
+    }
+
+    function Hero({ copy }) {
+      const fadeUp = (delay) => ({
+        initial: { filter: "blur(10px)", opacity: 0, y: 20 },
+        animate: { filter: "blur(0px)", opacity: 1, y: 0 },
+        transition: { duration: 0.8, ease: "easeOut", delay },
+      });
+
+      return (
+        <section id="top" className="relative min-h-screen w-full overflow-hidden bg-black">
+          <FadingVideo
+            src={VIDEO.hero}
+            className="absolute left-1/2 top-0 -translate-x-1/2 object-cover object-top z-0"
+            style={{ width: "120%", height: "120%" }}
+          />
+
+          <div className="relative z-10 flex min-h-screen flex-col">
+            <div className="flex-1 flex flex-col items-center justify-center pt-28 px-4">
+              <motion.div {...fadeUp(0.4)} className="liquid-glass rounded-full flex items-center mb-6 max-w-[calc(100vw-2rem)]">
+                <span className="bg-white text-black px-3 py-1 text-xs font-semibold rounded-full m-1">{copy.badgeNew}</span>
+                <span className="text-sm text-white/90 pr-3 truncate">{copy.badgeText}</span>
+              </motion.div>
+
+              <BlurText
+                text={copy.headline}
+                className="hero-title text-5xl md:text-7xl lg:text-[5.5rem] font-heading italic text-white leading-[0.82] max-w-3xl justify-center tracking-[-4px] text-center"
+              />
+
+              <motion.p {...fadeUp(0.8)} className="mt-5 text-sm md:text-base text-white max-w-2xl font-body font-light leading-tight text-center">
+                {copy.sub}
+              </motion.p>
+
+              <motion.div {...fadeUp(1.1)} className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 mt-7">
+                <a href="#collection" className="liquid-glass-strong rounded-full px-5 py-2.5 text-sm font-medium text-white flex items-center gap-2">
+                  {copy.ctaPrimary} <ArrowUpRight className="h-5 w-5" />
+                </a>
+                <a href="#collection" className="text-white text-sm font-medium flex items-center gap-2 font-body">
+                  {copy.ctaSecondary} <Play className="h-4 w-4" />
+                </a>
+              </motion.div>
+
+              <motion.div {...fadeUp(1.3)} className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 w-full max-w-[460px]">
+                <div className="liquid-glass p-5 rounded-[1.25rem]">
+                  <Clock className="h-7 w-7 text-white" />
+                  <div className="text-4xl font-heading italic text-white tracking-[-1px] leading-none mt-3">{copy.stat1Num}</div>
+                  <div className="text-xs text-white font-body font-light mt-2">{copy.stat1Label}</div>
+                </div>
+                <div className="liquid-glass p-5 rounded-[1.25rem]">
+                  <Glow className="h-7 w-7 text-white" />
+                  <div className="text-4xl font-heading italic text-white tracking-[-1px] leading-none mt-3">{copy.stat2Num}</div>
+                  <div className="text-xs text-white font-body font-light mt-2">{copy.stat2Label}</div>
+                </div>
+              </motion.div>
+            </div>
+
+            <motion.div {...fadeUp(1.4)} className="flex flex-col items-center gap-4 pb-8 px-4">
+              <div className="liquid-glass rounded-full px-3.5 py-1 text-xs font-medium text-white text-center">{copy.partnersChip}</div>
+              <div className="flex gap-7 md:gap-14 flex-wrap justify-center">
+                {copy.partners.map((name) => (
+                  <span key={name} className="font-heading italic text-white text-2xl md:text-3xl tracking-tight">{name}</span>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      );
+    }
+
+    function Capabilities({ copy }) {
+      const icons = [Drop, Bottle, Jar];
+
+      return (
+        <section id="collection" className="relative min-h-screen w-full bg-black overflow-hidden">
+          <FadingVideo
+            src={VIDEO.capabilities}
+            className="absolute inset-0 w-full h-full object-cover z-0"
+          />
+
+          <div className="relative z-10 px-6 md:px-16 lg:px-20 pt-24 pb-10 flex flex-col min-h-screen">
+            <div className="mb-auto">
+              <div className="text-sm font-body text-white/80 mb-6">{copy.kicker}</div>
+              <h2 className="font-heading italic text-white text-6xl md:text-7xl lg:text-[6rem] leading-[0.9] tracking-[-3px]">
+                {copy.heading1}<br />{copy.heading2}
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+              {copy.cards.map((card, index) => {
+                const Icon = icons[index];
+                return (
+                  <motion.article
+                    key={card.title}
+                    className="liquid-glass rounded-[1.25rem] p-6 min-h-[360px] flex flex-col"
+                    initial={{ filter: "blur(10px)", opacity: 0, y: 20 }}
+                    whileInView={{ filter: "blur(0px)", opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.75, ease: "easeOut", delay: index * 0.12 }}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="liquid-glass w-11 h-11 rounded-[0.75rem] flex items-center justify-center shrink-0">
+                        <Icon className="h-6 w-6 text-white" />
+                      </div>
+                      <div className="flex flex-wrap justify-end gap-1.5 max-w-[74%]">
+                        {card.tags.map((tag) => (
+                          <span key={tag} className="liquid-glass rounded-full px-3 py-1 text-[11px] text-white/90 font-body whitespace-nowrap">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex-1" />
+
+                    <div className="mt-6">
+                      <h3 className="font-heading italic text-white text-3xl md:text-4xl tracking-[-1px] leading-none">{card.title}</h3>
+                      <p className="mt-3 text-sm text-white/90 font-body font-light leading-snug max-w-[32ch]">{card.body}</p>
+                    </div>
+                  </motion.article>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    function App() {
+      const [lang, setLang] = useState("ko");
+      const copy = useMemo(() => COPY[lang], [lang]);
+
+      useEffect(() => {
+        document.documentElement.lang = lang === "ko" ? "ko" : "zh-CN";
+      }, [lang]);
+
+      return (
+        <div className="bg-black">
+          <Navbar copy={copy} lang={lang} setLang={setLang} />
+          <Hero copy={copy} />
+          <Capabilities copy={copy} />
+          <PremiumVisualSection lang={lang} type="drop" />
+          <PremiumVisualSection lang={lang} type="garden" />
+          <CampaignProofSection lang={lang} />
+          <PremiumVisualSection lang={lang} type="cream" />
+          <PremiumVisualSection lang={lang} type="lab" />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
